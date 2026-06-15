@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>病院経営実態調査</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif; background: #f5f6f8; color: #1a1a2e; font-size: 15px; line-height: 1.7; }
+  .header { background: #1a3a5c; color: #fff; padding: 2.5rem 2rem 2rem; text-align: center; }
+  .header h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
+  .header p { font-size: 0.88rem; opacity: 0.75; }
+  .progress-bar { background: #dde3ec; height: 4px; }
+  .progress-fill { background: #2e7dc9; height: 4px; width: 0%; transition: width 0.4s; }
+  .container { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  .step { display: none; }
+  .step.active { display: block; }
+  .step-label { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em; color: #2e7dc9; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .step-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1.75rem; padding-bottom: 1rem; border-bottom: 1.5px solid #e0e4ef; }
+  .field { margin-bottom: 1.5rem; }
+  .field label { display: block; font-size: 0.88rem; font-weight: 600; color: #334; margin-bottom: 0.5rem; }
+  .field label .req { color: #e0442a; margin-left: 3px; }
+  .radio-group { display: flex; flex-direction: column; gap: 0.5rem; }
+  .radio-item { display: flex; align-items: center; gap: 0.6rem; background: #fff; border: 1px solid #dde3ec; border-radius: 8px; padding: 0.6rem 0.9rem; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .radio-item:hover { border-color: #2e7dc9; background: #f0f6ff; }
+  .radio-item input { accent-color: #2e7dc9; width: 16px; height: 16px; flex-shrink: 0; }
+  .radio-item span { font-size: 0.9rem; }
+  input[type="text"], input[type="number"], textarea {
+    width: 100%; border: 1px solid #dde3ec; border-radius: 8px; padding: 0.6rem 0.8rem;
+    font-size: 0.9rem; font-family: inherit; background: #fff; color: #1a1a2e;
+    transition: border-color 0.15s; outline: none;
+  }
+  input[type="text"]:focus, input[type="number"]:focus, textarea:focus { border-color: #2e7dc9; box-shadow: 0 0 0 3px rgba(46,125,201,0.12); }
+  textarea { min-height: 100px; resize: vertical; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #dde3ec; }
+  th { background: #1a3a5c; color: #fff; font-weight: 500; padding: 0.65rem 0.75rem; text-align: center; }
+  td { padding: 0.55rem 0.75rem; border-top: 1px solid #eef0f5; }
+  tr:nth-child(even) td { background: #f8f9fc; }
+  td input[type="number"] { border: 1px solid #cfd5e4; border-radius: 6px; padding: 0.35rem 0.5rem; font-size: 0.85rem; width: 100%; min-width: 110px; background: #fff; }
+  td.label-col { font-weight: 500; white-space: nowrap; padding-left: 1rem; }
+  td.indent { padding-left: 1.75rem; color: #556; }
+  .score-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .score-table th { background: #e8eef6; color: #1a3a5c; font-weight: 600; padding: 0.55rem 0.75rem; text-align: left; border-bottom: 2px solid #d0d9ea; }
+  .score-table td { padding: 0.45rem 0.75rem; border-bottom: 1px solid #eef0f5; }
+  .score-table input[type="number"] { width: 70px; border: 1px solid #cfd5e4; border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.88rem; text-align: center; }
+  .score-total { font-size: 0.85rem; font-weight: 600; margin-top: 0.5rem; color: #1a3a5c; }
+  #scoreCount { color: #2e7dc9; }
+  .nav { display: flex; gap: 0.75rem; margin-top: 2rem; }
+  .btn { padding: 0.65rem 1.75rem; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; border: none; transition: background 0.15s, transform 0.1s; }
+  .btn:active { transform: scale(0.98); }
+  .btn-next { background: #2e7dc9; color: #fff; flex: 1; }
+  .btn-next:hover { background: #2268af; }
+  .btn-back { background: #fff; color: #556; border: 1px solid #dde3ec; }
+  .btn-back:hover { background: #f0f0f5; }
+  .btn-submit { background: #1a7a50; color: #fff; flex: 1; font-size: 1rem; padding: 0.75rem 2rem; }
+  .btn-submit:hover { background: #15633f; }
+  .btn-submit:disabled { background: #aac; cursor: not-allowed; }
+  .btn-pdf { background: #2e7dc9; color: #fff; padding: 0.75rem 2rem; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; border: none; margin-top: 1rem; display: inline-block; }
+  .btn-pdf:hover { background: #2268af; }
+  .note { font-size: 0.8rem; color: #778; background: #f8f9fc; border-left: 3px solid #2e7dc9; padding: 0.6rem 0.9rem; border-radius: 0 6px 6px 0; margin-bottom: 1.25rem; }
+  .success { display: none; text-align: center; padding: 3rem 1rem; }
+  .success.show { display: block; }
+  .success-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .success h2 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+  .success p { color: #556; font-size: 0.9rem; }
+  .error-msg { display: none; color: #e0442a; font-size: 0.8rem; margin-top: 0.3rem; }
+  .field.has-error input, .field.has-error textarea { border-color: #e0442a; }
+  .field.has-error .error-msg { display: block; }
+  #sendingOverlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.85); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; font-size: 1rem; color: #334; }
+  #sendingOverlay.show { display: flex; }
+  .spinner { width: 36px; height: 36px; border: 3px solid #dde3ec; border-top-color: #2e7dc9; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* PDF印刷用スタイル */
+  #printArea { display: none; }
+  @media print {
+    body > * { display: none !important; }
+    #printArea { display: block !important; font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif; font-size: 13px; color: #000; padding: 1.5rem; }
+    #printArea h1 { font-size: 1.3rem; text-align: center; margin-bottom: 0.3rem; }
+    #printArea .print-sub { text-align: center; font-size: 0.85rem; color: #555; margin-bottom: 1.5rem; }
+    #printArea h2 { font-size: 1rem; font-weight: 700; border-bottom: 2px solid #1a3a5c; padding-bottom: 0.3rem; margin: 1.2rem 0 0.7rem; color: #1a3a5c; }
+    #printArea .print-row { display: flex; margin-bottom: 0.4rem; gap: 0.5rem; }
+    #printArea .print-label { font-weight: 600; min-width: 180px; color: #334; font-size: 0.85rem; }
+    #printArea .print-value { color: #111; font-size: 0.85rem; }
+    #printArea table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
+    #printArea table th { background: #1a3a5c; color: #fff; padding: 0.4rem 0.5rem; text-align: center; }
+    #printArea table td { padding: 0.35rem 0.5rem; border: 1px solid #ccc; }
+    #printArea table td.indent { padding-left: 1.5rem; color: #444; }
+    #printArea .print-score-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 0.25rem 0; font-size: 0.85rem; }
+    #printArea .print-score-row span:last-child { font-weight: 600; min-width: 40px; text-align: right; }
+    #printArea .print-textarea { background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; font-size: 0.85rem; min-height: 60px; white-space: pre-wrap; margin-top: 0.3rem; }
+    #printArea .print-timestamp { text-align: right; font-size: 0.78rem; color: #888; margin-bottom: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>病院経営実態調査</h1>
+  <p>長崎県病院協議会 経営管理分科会</p>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="container">
+
+  <div class="step active" id="step1">
+    <div class="step-label">STEP 1 / 3</div>
+    <div class="step-title">病院情報</div>
+    <div class="field" id="f-name">
+      <label>１．病院名（イニシャルも可）<span class="req">*</span></label>
+      <input type="text" id="q_name" placeholder="例：長崎○○病院 または A.B.">
+      <div class="error-msg">病院名を入力してください</div>
+    </div>
+    <div class="field" id="f-area">
+      <label>２．二次医療圏<span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" name="area" value="長崎"><span>a. 長崎</span></label>
+        <label class="radio-item"><input type="radio" name="area" value="佐世保県北"><span>b. 佐世保県北</span></label>
+        <label class="radio-item"><input type="radio" name="area" value="県央"><span>c. 県央</span></label>
+        <label class="radio-item"><input type="radio" name="area" value="県南"><span>d. 県南</span></label>
+        <label class="radio-item"><input type="radio" name="area" value="五島"><span>e. 五島</span></label>
+        <label class="radio-item"><input type="radio" name="area" value="上五島"><span>f. 上五島</span></label>
+        <label class="radio-item"><input type="radio" name="area" value="壱岐"><span>g. 壱岐</span></label>
+        <label class="radio-item"><input type="radio" name="area" value="対馬"><span>h. 対馬</span></label>
+      </div>
+      <div class="error-msg">二次医療圏を選択してください</div>
+    </div>
+    <div class="field" id="f-owner">
+      <label>３．開設主体<span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" name="owner" value="国立"><span>a. 国立</span></label>
+        <label class="radio-item"><input type="radio" name="owner" value="公立"><span>b. 公立</span></label>
+        <label class="radio-item"><input type="radio" name="owner" value="公的"><span>c. 公的</span></label>
+        <label class="radio-item"><input type="radio" name="owner" value="医療法人"><span>d. 医療法人</span></label>
+        <label class="radio-item"><input type="radio" name="owner" value="その他"><span>e. その他</span></label>
+      </div>
+      <div class="error-msg">開設主体を選択してください</div>
+    </div>
+    <div class="field" id="f-beds">
+      <label>４．病床規模<span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" name="beds" value="20～99床"><span>a. 20～99床</span></label>
+        <label class="radio-item"><input type="radio" name="beds" value="100～199床"><span>b. 100～199床</span></label>
+        <label class="radio-item"><input type="radio" name="beds" value="200～299床"><span>c. 200～299床</span></label>
+        <label class="radio-item"><input type="radio" name="beds" value="300床以上"><span>d. 300床以上</span></label>
+      </div>
+      <div class="error-msg">病床規模を選択してください</div>
+    </div>
+    <div class="field" id="f-type">
+      <label>５．病院類型<span class="req">*</span></label>
+      <div class="note">病床機能が多岐にわたる場合は、収益性に最も影響を与えるカテゴリーを選択してください。</div>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" name="htype" value="一般"><span>a. 一般</span></label>
+        <label class="radio-item"><input type="radio" name="htype" value="療養型"><span>b. 療養型</span></label>
+        <label class="radio-item"><input type="radio" name="htype" value="精神科"><span>c. 精神科</span></label>
+        <label class="radio-item"><input type="radio" name="htype" value="その他"><span>d. その他</span></label>
+      </div>
+      <div class="error-msg">病院類型を選択してください</div>
+    </div>
+    <div class="field" id="f-beds6">
+      <label>６．機能別病床数<span class="req">*</span></label>
+      <div class="note">該当しない機能は「0」を入力してください。</div>
+      <div class="row2">
+        <div><label style="font-weight:400;font-size:0.85rem;color:#556;margin-bottom:4px;display:block;">a. 高度急性期（床）</label><input type="number" id="q_bed_kodo" min="0" placeholder="0"></div>
+        <div><label style="font-weight:400;font-size:0.85rem;color:#556;margin-bottom:4px;display:block;">b. 急性期（床）</label><input type="number" id="q_bed_kyusei" min="0" placeholder="0"></div>
+        <div><label style="font-weight:400;font-size:0.85rem;color:#556;margin-bottom:4px;display:block;">c. 包括期（床）</label><input type="number" id="q_bed_hokkatsu" min="0" placeholder="0"></div>
+        <div><label style="font-weight:400;font-size:0.85rem;color:#556;margin-bottom:4px;display:block;">d. 慢性期（床）</label><input type="number" id="q_bed_mansei" min="0" placeholder="0"></div>
+      </div>
+      <div class="error-msg">すべての機能別病床数を入力してください（該当なしは「0」）</div>
+    </div>
+    <div class="field">
+      <label>７．併設事業</label>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <div><label style="font-weight:400;font-size:0.85rem;color:#556;margin-bottom:4px;display:block;">a. 介護施設</label><input type="text" id="q_care" placeholder="施設名など（任意）"></div>
+        <div><label style="font-weight:400;font-size:0.85rem;color:#556;margin-bottom:4px;display:block;">b. 在宅支援サービス</label><input type="text" id="q_home" placeholder="サービス名など（任意）"></div>
+        <div><label style="font-weight:400;font-size:0.85rem;color:#556;margin-bottom:4px;display:block;">c. その他</label><input type="text" id="q_other_biz" placeholder="（任意）"></div>
+      </div>
+    </div>
+    <div class="nav"><button class="btn btn-next" onclick="goNext(1)">次へ →</button></div>
+  </div>
+
+  <div class="step" id="step2">
+    <div class="step-label">STEP 2 / 3</div>
+    <div class="step-title">収支調査</div>
+    <div class="note" style="background:#fff8e6; border-left-color:#f0a020; margin-bottom:1rem;">
+      <strong style="display:block; margin-bottom:0.3rem;">【ご記入にあたっての注意事項】</strong>
+      本調査は病院単体の経営状況を把握することを目的としております。そのため、<strong>併設事業の収支は原則として含めないようにしてください。</strong><br>
+      ただし、病院と一体的に運営されており収支の切り分けが困難な場合は、病院収支に含めた上で、下記にチェックをお願いします。
+      <div style="margin-top:0.75rem;">
+        <label style="display:flex; align-items:center; gap:0.6rem; cursor:pointer; font-weight:600; color:#664d00;">
+          <input type="checkbox" id="q_gassen" style="width:18px;height:18px;accent-color:#f0a020;flex-shrink:0;">
+          <span>併設事業収支の合算あり</span>
+        </label>
+      </div>
+    </div>
+    <div class="note">単位：円　／　<strong>入力漏れ防止のため、該当なしの項目は「0」を入力してください</strong>（空欄はエラー表示されます）</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="text-align:left;width:44%;">項目</th><th>2023年度</th><th>2024年度</th><th>2025年度</th></tr></thead>
+        <tbody id="finTable"></tbody>
+      </table>
+    </div>
+    <div class="nav">
+      <button class="btn btn-back" onclick="goBack(2)">← 戻る</button>
+      <button class="btn btn-next" onclick="goNext(2)">次へ →</button>
+    </div>
+  </div>
+
+  <div class="step" id="step3">
+    <div class="step-label">STEP 3 / 3</div>
+    <div class="step-title">事務長アンケート</div>
+    <div class="field" id="f-mgmt">
+      <label>１．最近の病院経営状況をどう捉えていますか？<span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" name="mgmt" value="非常に良い"><span>a. 非常に良い</span></label>
+        <label class="radio-item"><input type="radio" name="mgmt" value="まあまあ良い"><span>b. まあまあ良い</span></label>
+        <label class="radio-item"><input type="radio" name="mgmt" value="どちらともいえない"><span>c. どちらともいえない</span></label>
+        <label class="radio-item"><input type="radio" name="mgmt" value="やや悪い"><span>d. やや悪い</span></label>
+        <label class="radio-item"><input type="radio" name="mgmt" value="非常に悪い"><span>e. 非常に悪い</span></label>
+      </div>
+      <div class="error-msg">経営状況の評価を選択してください</div>
+    </div>
+    <div class="field">
+      <label>２．経営収益性に大きな影響を与えた要因は何と思いますか</label>
+      <div class="note">１～10個選択して、総計10点を配点してください。<br>例：１個→10点、２個→7点＋3点、10個→各1点 など</div>
+      <table class="score-table">
+        <thead><tr><th>影響を与えた要因</th><th style="text-align:center;width:90px;">点数</th></tr></thead>
+        <tbody>
+          <tr><td>a. 人件費</td><td><input type="number" class="score-input" id="sc_a" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>b. 医師不足</td><td><input type="number" class="score-input" id="sc_b" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>c. 看護師不足</td><td><input type="number" class="score-input" id="sc_c" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>d. 医師・看護師以外のスタッフ不足</td><td><input type="number" class="score-input" id="sc_d" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>e. 働き方改革</td><td><input type="number" class="score-input" id="sc_e" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>f. 光熱費</td><td><input type="number" class="score-input" id="sc_f" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>g. 医薬品/医療材料費</td><td><input type="number" class="score-input" id="sc_g" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>h. 医療機器維持/更新費用</td><td><input type="number" class="score-input" id="sc_h" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>i. 業務委託費（給食、清掃等）</td><td><input type="number" class="score-input" id="sc_i" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>j. 人材紹介手数料</td><td><input type="number" class="score-input" id="sc_j" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>k. 病院建替え</td><td><input type="number" class="score-input" id="sc_k" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>l. 病床稼働率</td><td><input type="number" class="score-input" id="sc_l" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>m. 外来患者数</td><td><input type="number" class="score-input" id="sc_m" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>n. 医師の働きぶり</td><td><input type="number" class="score-input" id="sc_n" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>o. 人材定着/育成</td><td><input type="number" class="score-input" id="sc_o" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>p. 医療制度/診療報酬改定</td><td><input type="number" class="score-input" id="sc_p" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>q. 採算が取れない公的役割</td><td><input type="number" class="score-input" id="sc_q" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>r. DX/AI対応</td><td><input type="number" class="score-input" id="sc_r" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>s. 未収金</td><td><input type="number" class="score-input" id="sc_s" min="0" max="10" placeholder="-"></td></tr>
+          <tr><td>t. その他</td><td><input type="number" class="score-input" id="sc_t" min="0" max="10" placeholder="-"></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:0.5rem;display:flex;gap:0.5rem;align-items:center;justify-content:flex-end;">
+        <span class="score-total">合計: <span id="scoreCount">0</span> / 10点</span>
+      </div>
+      <div id="f-score-other" style="margin-top:0.75rem;display:none;">
+        <label style="font-size:0.85rem;color:#556;font-weight:400;">t. その他の内容</label>
+        <input type="text" id="q_score_other_text" placeholder="具体的に記載してください" style="margin-top:4px;">
+      </div>
+    </div>
+    <div class="field">
+      <label>３．病院経営において今後の展望や構想</label>
+      <textarea id="q_future" placeholder="自由にご記載ください（任意）"></textarea>
+    </div>
+    <div class="field">
+      <label>４．当分科会の方向性やアンケートに対して提案や希望があれば自由に記載してください。</label>
+      <textarea id="q_request" placeholder="自由にご記載ください（任意）"></textarea>
+    </div>
+    <div class="field" id="f-disclosure">
+      <label>５．アンケートの取扱いに対する意向を選択してください。<span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" name="disclosure" value="分科会外部にもオープン可能"><span>分科会外部にもオープン可能</span></label>
+        <label class="radio-item"><input type="radio" name="disclosure" value="分科会内部のみオープン可能"><span>分科会内部のみオープン可能</span></label>
+        <label class="radio-item"><input type="radio" name="disclosure" value="分科会内部でも匿名とする"><span>分科会内部でも匿名とする</span></label>
+      </div>
+      <div class="error-msg">取扱いの意向を選択してください</div>
+    </div>
+  </div>
+
+    <div class="nav">
+      <button class="btn btn-back" onclick="goBack(3)">← 戻る</button>
+      <button class="btn btn-submit" id="submitBtn" onclick="submitForm()">送信する</button>
+    </div>
+  </div>
+
+  <div class="success" id="successScreen">
+    <div class="success-icon">✅</div>
+    <h2>ご回答ありがとうございました</h2>
+    <p>回答を受け付けました。集計結果は後日ご報告いたします。</p>
+    <br>
+    <button class="btn-pdf" onclick="printAnswers()">📄 回答内容をPDFで保存する</button>
+    <p style="font-size:0.8rem;color:#888;margin-top:0.75rem;">※ 印刷画面で「送信先：PDFに保存」を選択してください</p>
+  </div>
+
+</div>
+
+<!-- 印刷用エリア（画面には非表示、印刷時のみ表示） -->
+<div id="printArea"></div>
+
+<div id="sendingOverlay"><div class="spinner"></div><span>送信中...</span></div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbxYv6mO_sVuoh2ogTsi_3EZ4NtpXo53jTtGytpLBhhGbR1jiUwJvrBvkce9VGPEcn-www/exec";
+
+const finRows = [
+  { key:"医業収益_全",     label:"1. 医業収益（全）",            indent:false },
+  { key:"入院収益",         label:"入院収益",                    indent:true },
+  { key:"外来収益",         label:"外来収益",                    indent:true },
+  { key:"室料差額収益",    label:"室料差額収益",                 indent:true },
+  { key:"保健予防収益",    label:"保健予防収益",                 indent:true },
+  { key:"その他医業収益",  label:"その他の医業収益",             indent:true },
+  { key:"医業費用_全",     label:"2. 医業費用（全）",            indent:false },
+  { key:"材料費",           label:"材料費",                      indent:true },
+  { key:"医薬品費",         label:"うち医薬品費",                indent:true, sub:true },
+  { key:"給与費",           label:"給与費",                      indent:true },
+  { key:"委託費",           label:"委託費",                      indent:true },
+  { key:"給食清掃医事委託", label:"うち給食・清掃・医事委託費",  indent:true, sub:true },
+  { key:"設備関係費",       label:"設備関係費",                  indent:true },
+  { key:"減価償却費",       label:"うち減価償却費",              indent:true, sub:true },
+  { key:"経費",             label:"経費",                        indent:true },
+  { key:"水道光熱費",       label:"うち水道光熱費",              indent:true, sub:true },
+  { key:"人材紹介手数料費", label:"うち人材紹介手数料",          indent:true, sub:true },
+  { key:"医業利益",         label:"3. 医業利益（1-2）",          indent:false },
+  { key:"医業外収益",       label:"4. 医業外収益（補助金除く）", indent:false },
+  { key:"医業外費用",       label:"5. 医業外費用（全）",         indent:false },
+  { key:"医業外利益",       label:"6. 医業外利益（補助金除く）", indent:false },
+  { key:"経常利益",         label:"7. 経常利益（補助金除く）",   indent:false },
+  { key:"補助金収益",       label:"8. 補助金収益（全）",         indent:false },
+  { key:"最終利益",         label:"9. 最終利益（補助金含む）",   indent:false },
+  { key:"外来延患者数",    label:"10. 外来延患者数（人）",       indent:false },
+  { key:"入院延患者数",    label:"11. 入院延患者数（人）",       indent:false },
+];
+
+const tbody = document.getElementById("finTable");
+finRows.forEach(r => {
+  const tr = document.createElement("tr");
+  const tdClass = r.sub ? "indent" : (r.indent ? "indent" : "label-col");
+  tr.innerHTML = `<td class="${tdClass}">${r.label}</td>
+    <td><input type="number" class="fin-input" id="fin_${r.key}_2023" min="0" placeholder="要入力"></td>
+    <td><input type="number" class="fin-input" id="fin_${r.key}_2024" min="0" placeholder="要入力"></td>
+    <td><input type="number" class="fin-input" id="fin_${r.key}_2025" min="0" placeholder="要入力"></td>`;
+  tbody.appendChild(tr);
+});
+
+// 収支欄：空欄をリアルタイムで赤枠表示
+document.addEventListener("input", e => {
+  if (e.target.classList.contains("fin-input")) {
+    e.target.style.borderColor = e.target.value === "" ? "#e0442a" : "#cfd5e4";
+  }
+});
+
+document.querySelectorAll(".score-input").forEach(el => {
+  el.addEventListener("input", () => {
+    let total = 0;
+    document.querySelectorAll(".score-input").forEach(e => total += (parseInt(e.value)||0));
+    document.getElementById("scoreCount").textContent = total;
+    document.getElementById("scoreCount").style.color = total > 10 ? "#e0442a" : "#2e7dc9";
+    document.getElementById("f-score-other").style.display =
+      (parseInt(document.getElementById("sc_t").value)||0) > 0 ? "block" : "none";
+  });
+});
+
+function updateProgress(step) {
+  document.getElementById("progressFill").style.width = ((step/3)*100) + "%";
+}
+
+function validateStep1() {
+  let ok = true;
+  const name = document.getElementById("q_name").value.trim();
+  const nameField = document.getElementById("f-name");
+  if (!name) { nameField.classList.add("has-error"); ok = false; }
+  else nameField.classList.remove("has-error");
+  ["area","owner","beds","htype"].forEach(n => {
+    const checked = document.querySelector(`input[name="${n}"]:checked`);
+    const fieldId = n === "htype" ? "f-type" : "f-" + n;
+    const field = document.getElementById(fieldId);
+    if (!checked) { field.classList.add("has-error"); ok = false; }
+    else field.classList.remove("has-error");
+  });
+  // 機能別病床数の必須チェック
+  const bedIds = ["q_bed_kodo","q_bed_kyusei","q_bed_hokkatsu","q_bed_mansei"];
+  const bedField = document.getElementById("f-beds6");
+  const bedEmpty = bedIds.some(id => document.getElementById(id).value === "");
+  if (bedEmpty) { bedField.classList.add("has-error"); ok = false; }
+  else bedField.classList.remove("has-error");
+  return ok;
+}
+
+function validateStep2() {
+  let ok = true;
+  let emptyCount = 0;
+  document.querySelectorAll(".fin-input").forEach(el => {
+    if (el.value === "") {
+      el.style.borderColor = "#e0442a";
+      emptyCount++;
+    }
+  });
+  if (emptyCount > 0) {
+    if (!confirm(`収支調査に${emptyCount}件の空欄があります。\n空欄は「入力漏れ」として扱われます。\n該当なしの場合は「0」を入力してください。\n\nこのまま次へ進みますか？`)) {
+      ok = false;
+    }
+  }
+  return ok;
+}
+
+function validateStep3() {
+  let ok = true;
+  const mgmt = document.querySelector('input[name="mgmt"]:checked');
+  const mf = document.getElementById("f-mgmt");
+  if (!mgmt) { mf.classList.add("has-error"); ok = false; }
+  else mf.classList.remove("has-error");
+  const disclosure = document.querySelector('input[name="disclosure"]:checked');
+  const df = document.getElementById("f-disclosure");
+  if (!disclosure) { df.classList.add("has-error"); ok = false; }
+  else df.classList.remove("has-error");
+  return ok;
+}
+
+function goNext(from) {
+  if (from === 1 && !validateStep1()) return;
+  if (from === 2 && !validateStep2()) return;
+  document.getElementById("step" + from).classList.remove("active");
+  document.getElementById("step" + (from+1)).classList.add("active");
+  updateProgress(from+1);
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function goBack(from) {
+  document.getElementById("step" + from).classList.remove("active");
+  document.getElementById("step" + (from-1)).classList.add("active");
+  updateProgress(from-1);
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function collectData() {
+  const d = {
+    timestamp: new Date().toLocaleString("ja-JP"),
+    q1_病院名: document.getElementById("q_name").value.trim(),
+    q2_二次医療圏: (document.querySelector('input[name="area"]:checked') || {}).value || "",
+    q3_開設主体: (document.querySelector('input[name="owner"]:checked') || {}).value || "",
+    q4_病床規模: (document.querySelector('input[name="beds"]:checked') || {}).value || "",
+    q5_病院類型: (document.querySelector('input[name="htype"]:checked') || {}).value || "",
+    q6_高度急性期床: document.getElementById("q_bed_kodo").value,
+    q6_急性期床: document.getElementById("q_bed_kyusei").value,
+    q6_包括期床: document.getElementById("q_bed_hokkatsu").value,
+    q6_慢性期床: document.getElementById("q_bed_mansei").value,
+    q7_介護施設: document.getElementById("q_care").value,
+    q7_在宅支援: document.getElementById("q_home").value,
+    q7_その他: document.getElementById("q_other_biz").value,
+    q_併設事業合算: document.getElementById("q_gassen").checked ? "あり" : "なし",
+  };
+  finRows.forEach(r => {
+    [2023,2024,2025].forEach(y => {
+      d["収支_" + r.key + "_" + y] = document.getElementById("fin_" + r.key + "_" + y).value;
+    });
+  });
+  d.q3_1_経営状況 = (document.querySelector('input[name="mgmt"]:checked') || {}).value || "";
+  ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t"].forEach(c => {
+    d["q3_2_" + c] = document.getElementById("sc_" + c).value;
+  });
+  d.q3_2_その他内容 = document.getElementById("q_score_other_text").value;
+  d.q3_3_展望構想 = document.getElementById("q_future").value;
+  d.q3_4_分科会提案 = document.getElementById("q_request").value;
+  d.q3_5_取扱意向 = (document.querySelector('input[name="disclosure"]:checked') || {}).value || "";
+  return d;
+}
+
+let savedData = null;
+
+async function submitForm() {
+  if (!validateStep3()) return;
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  document.getElementById("sendingOverlay").classList.add("show");
+  try {
+    savedData = collectData();
+    await fetch(GAS_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(savedData)
+    });
+    document.getElementById("sendingOverlay").classList.remove("show");
+    document.getElementById("step3").classList.remove("active");
+    document.getElementById("successScreen").classList.add("show");
+    document.getElementById("progressFill").style.width = "100%";
+    window.scrollTo({top:0, behavior:"smooth"});
+  } catch(e) {
+    document.getElementById("sendingOverlay").classList.remove("show");
+    alert("送信に失敗しました。通信環境を確認して再度お試しください。");
+    btn.disabled = false;
+  }
+}
+
+const scoreLabels = {
+  a:"人件費", b:"医師不足", c:"看護師不足", d:"医師・看護師以外のスタッフ不足",
+  e:"働き方改革", f:"光熱費", g:"医薬品/医療材料費", h:"医療機器維持/更新費用",
+  i:"業務委託費（給食、清掃等）", j:"人材紹介手数料", k:"病院建替え", l:"病床稼働率",
+  m:"外来患者数", n:"医師の働きぶり", o:"人材定着/育成", p:"医療制度/診療報酬改定",
+  q:"採算が取れない公的役割", r:"DX/AI対応", s:"未収金", t:"その他"
+};
+
+function printAnswers() {
+  if (!savedData) return;
+  const d = savedData;
+
+  let finRows2 = `<table><thead><tr><th style="text-align:left;">項目</th><th>2023年度</th><th>2024年度</th><th>2025年度</th></tr></thead><tbody>`;
+  finRows.forEach(r => {
+    const cls = r.sub || r.indent ? "indent" : "";
+    const v23 = d["収支_" + r.key + "_2023"] || "—";
+    const v24 = d["収支_" + r.key + "_2024"] || "—";
+    const v25 = d["収支_" + r.key + "_2025"] || "—";
+    finRows2 += `<tr><td class="${cls}">${r.label}</td><td style="text-align:right;">${v23 ? Number(v23).toLocaleString() : "—"}</td><td style="text-align:right;">${v24 ? Number(v24).toLocaleString() : "—"}</td><td style="text-align:right;">${v25 ? Number(v25).toLocaleString() : "—"}</td></tr>`;
+  });
+  finRows2 += `</tbody></table>`;
+
+  let scoreRows = "";
+  ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t"].forEach(c => {
+    const v = d["q3_2_" + c];
+    if (v) scoreRows += `<div class="print-score-row"><span>${scoreLabels[c]}</span><span>${v}点</span></div>`;
+  });
+  if (d.q3_2_その他内容) scoreRows += `<div class="print-score-row"><span style="color:#555;font-size:0.8rem;">その他内容：${d.q3_2_その他内容}</span></div>`;
+
+  document.getElementById("printArea").innerHTML = `
+    <h1>病院経営実態調査 回答控え</h1>
+    <p class="print-sub">長崎県病院協議会 経営管理分科会</p>
+    <p class="print-timestamp">回答日時：${d.timestamp}</p>
+
+    <h2>■ 病院情報</h2>
+    <div class="print-row"><span class="print-label">病院名</span><span class="print-value">${d.q1_病院名}</span></div>
+    <div class="print-row"><span class="print-label">二次医療圏</span><span class="print-value">${d.q2_二次医療圏}</span></div>
+    <div class="print-row"><span class="print-label">開設主体</span><span class="print-value">${d.q3_開設主体}</span></div>
+    <div class="print-row"><span class="print-label">病床規模</span><span class="print-value">${d.q4_病床規模}</span></div>
+    <div class="print-row"><span class="print-label">病院類型</span><span class="print-value">${d.q5_病院類型}</span></div>
+    <div class="print-row"><span class="print-label">高度急性期</span><span class="print-value">${d.q6_高度急性期床 || "—"} 床</span></div>
+    <div class="print-row"><span class="print-label">急性期</span><span class="print-value">${d.q6_急性期床 || "—"} 床</span></div>
+    <div class="print-row"><span class="print-label">包括期</span><span class="print-value">${d.q6_包括期床 || "—"} 床</span></div>
+    <div class="print-row"><span class="print-label">慢性期</span><span class="print-value">${d.q6_慢性期床 || "—"} 床</span></div>
+    ${d.q7_介護施設 ? `<div class="print-row"><span class="print-label">介護施設</span><span class="print-value">${d.q7_介護施設}</span></div>` : ""}
+    ${d.q7_在宅支援 ? `<div class="print-row"><span class="print-label">在宅支援サービス</span><span class="print-value">${d.q7_在宅支援}</span></div>` : ""}
+    ${d.q7_その他 ? `<div class="print-row"><span class="print-label">その他事業</span><span class="print-value">${d.q7_その他}</span></div>` : ""}
+    <div class="print-row"><span class="print-label">収支調査での併設事業合算</span><span class="print-value">${d.q_併設事業合算}</span></div>
+
+    <h2>■ 収支調査（単位：円）</h2>
+    ${finRows2}
+
+    <h2>■ 事務長アンケート</h2>
+    <div class="print-row"><span class="print-label">経営状況の評価</span><span class="print-value">${d.q3_1_経営状況}</span></div>
+    ${scoreRows ? `<div style="margin-top:0.5rem;"><div style="font-weight:600;font-size:0.85rem;margin-bottom:0.3rem;">困っていること（配点）</div>${scoreRows}</div>` : ""}
+    ${d.q3_3_展望構想 ? `<div style="margin-top:0.75rem;"><div style="font-weight:600;font-size:0.85rem;margin-bottom:0.3rem;">今後の展望や構想</div><div class="print-textarea">${d.q3_3_展望構想}</div></div>` : ""}
+    ${d.q3_4_分科会提案 ? `<div style="margin-top:0.75rem;"><div style="font-weight:600;font-size:0.85rem;margin-bottom:0.3rem;">分科会への提案や希望</div><div class="print-textarea">${d.q3_4_分科会提案}</div></div>` : ""}
+    <div class="print-row" style="margin-top:0.75rem;"><span class="print-label">アンケート取扱いの意向</span><span class="print-value">${d.q3_5_取扱意向}</span></div>
+  `;
+  window.print();
+}
+
+updateProgress(1);
+</script>
+</body>
+</html>
